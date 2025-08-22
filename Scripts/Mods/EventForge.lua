@@ -120,6 +120,7 @@ end
 --- @param eventName (string) The name of the event to fire.
 --- @param ... (any) Arguments to pass to the listener callback functions.
 function _G.EventForge.FireEvent(eventName, ...)
+    System.LogAlways("[EventForge] FireEvent called for '" .. eventName .. "' with " .. select("#", ...) .. " args")
     local lst = listeners[eventName]
     if not lst or #lst == 0 then
         cachedEvents[eventName] = cachedEvents[eventName] or {}
@@ -144,7 +145,7 @@ end
 -- #endregion
 
 --------------------------------------------------
---- Event Delaying
+--- Event Delaying ###### Does not work ######
 --------------------------------------------------
 -- #region Event Delaying
 
@@ -152,15 +153,25 @@ end
 ---
 --- Uses Script.SetTimer to schedule the event firing.
 ---
---- @param eventName (string) The name of the event to fire.
---- @param delayMs (number) The delay in milliseconds before firing the event.
---- @param ... (any) Arguments to pass to the listener callback functions.
-function _G.EventForge.FireEventDelayed(eventName, delayMs, ...)
-    local args = {...}
-    Script.SetTimer(delayMs, function()
-        _G.EventForge.FireEvent(eventName, table.unpack(args))
-    end)
-end
+-- @param eventName (string) The name of the event to fire.
+-- @param delayMs (number) The delay in milliseconds before firing the event.
+-- @param ... (any) Arguments to pass to the listener callback functions.
+-- function _G.EventForge.FireEventDelayed(eventName, delayMs, ...)
+--     _G.EventForge._delayedEvents = _G.EventForge._delayedEvents or {}
+    
+--     local function FireEventDelayedCallback(id)
+--         local info = _G.EventForge._delayedEvents[id]
+--         if info then
+--             _G.EventForge.FireEvent(info.eventName, table.unpack(info.args))
+--             _G.EventForge._delayedEvents[id] = nil
+--         end
+--         return false
+--     end
+--     local id = tostring(System.GetFrameTickCount()) .. tostring(math.random(1000000))
+--     _G.EventForge._delayedEvents[id] = { eventName = eventName, args = {...} }
+--     Script.SetTimer(delayMs, function() FireEventDelayedCallback(id) end)
+-- end
+
 
 -- #endregion
 
@@ -225,11 +236,14 @@ end
 -- #region Console Commands
 
 --- Console Commands for accessing EventForge functionality
-System.AddCCommand("EventForge.Events", "EventForge.DebugListEvents()", "List all registered events")
-System.AddCCommand("EventForge.Listeners", "EventForge.DebugListListeners(%s)", "List all registered listeners for an event")
-System.AddCCommand("EventForge.EventsByMod", "EventForge.DebugListEventsByMod(%s)", "List all events registered by a mod")
+System.AddCCommand("EventForge.Events", "_G.EventForge.DebugListEvents()", "List all registered events")
+-- #### Not working ####
+-- System.AddCCommand("EventForge.Listeners", "_G.EventForge.DebugListListeners()", "List all registered listeners for an event")
+-- System.AddCCommand("EventForge.EventsByMod", "_G.EventForge.DebugListEventsByMod()", "List all events registered by a mod")
+-- #####################
 
 -- #endregion
 
 ------------------------------------------------
 _G.EventForge.initialized = true
+Script.SetTimer(100, _G.EventForge.ProcessDelayedQueue) 

@@ -9,10 +9,11 @@ local listeners = {}
 local cachedEvents = {}
 local availableEvents = {}
 
-------------------------------------------------
--- Event Registry with Parameters
-------------------------------------------------
----
+--------------------------------------------------
+--- Event Registry
+--------------------------------------------------
+-- #region Event Registry
+
 -- Registers a new event in the EventForge system.
 --
 --- This function allows a mod to declare a new event that can be listened to by other mods or systems.
@@ -31,17 +32,17 @@ function _G.EventForge.RegisterEvent(eventName, modName, description, paramList)
     System.LogAlways("[EventForge] Event registered: '" .. eventName .. "' by mod '" .. modName .. "'.")
 end
 
---[[
---------------------------------------------------------------------------------
- EventForge - Event Listener Registration
---------------------------------------------------------------------------------
+-- #endregion
 
-This section contains the implementation of the EventForge listener registration function.
-The EventForge system allows different mods or systems to register callback functions for specific events.
-When an event is triggered, all registered listeners for that event will be notified.
---]]
+--------------------------------------------------
+--- Event Listener Registration
+--------------------------------------------------
+-- #region Event Listener Registration
 
----
+-- This section contains the implementation of the EventForge listener registration function.
+-- The EventForge system allows different mods or systems to register callback functions for specific events.
+-- When an event is triggered, all registered listeners for that event will be notified.
+
 --- Registers a listener (callback) for a specific event in the EventForge system.
 ---
 --- This function allows a mod to listen for a specific event by providing:
@@ -64,7 +65,6 @@ function _G.EventForge.RegisterListener(eventName, callbackFunction, opts)
 
     listeners[eventName] = listeners[eventName] or {}
 
-    -- Doppelte Listener verhindern
     for _, listener in ipairs(listeners[eventName]) do
         if listener.callback == callbackFunction then
             return
@@ -79,7 +79,6 @@ function _G.EventForge.RegisterListener(eventName, callbackFunction, opts)
 
     System.LogAlways("[EventForge] Registered listener for event '" .. eventName .. "' by mod '" .. (opts.modName or "Unknown") .. "'.")
 
-    -- Gecachte Events sofort abfeuern
     if cachedEvents[eventName] and #cachedEvents[eventName] > 0 then
         System.LogAlways("[EventForge] Firing cached events for '" .. eventName .. "' (" .. tostring(#cachedEvents[eventName]) .. " cached events).")
         for _, args in ipairs(cachedEvents[eventName]) do
@@ -106,11 +105,13 @@ function _G.EventForge.UnregisterListener(eventName, callbackFunction)
     end
     if #lst == 0 then listeners[eventName] = nil end
 end
+-- #endregion
 
-------------------------------------------------
--- Event Firing
-------------------------------------------------
----
+--------------------------------------------------
+--- Event Firing
+--------------------------------------------------
+-- #region Event Firing
+
 --- Fires (triggers) an event, calling all registered listeners for that event.
 ---
 --- If no listeners are registered, the event and its arguments are cached for later delivery.
@@ -140,10 +141,13 @@ function _G.EventForge.FireEvent(eventName, ...)
     end
 end
 
-------------------------------------------------
--- Async / Timer Wrapper
-------------------------------------------------
----
+-- #endregion
+
+--------------------------------------------------
+--- Event Delaying
+--------------------------------------------------
+-- #region Event Delaying
+
 --- Fires an event after a specified delay (in milliseconds).
 ---
 --- Uses Script.SetTimer to schedule the event firing.
@@ -158,10 +162,13 @@ function _G.EventForge.FireEventDelayed(eventName, delayMs, ...)
     end)
 end
 
-------------------------------------------------
--- Debugging Tools
-------------------------------------------------
----
+-- #endregion
+
+--------------------------------------------------
+--- Event Debugging
+--------------------------------------------------
+-- #region Debugging Tools
+
 --- Logs all registered events and their descriptions/parameters to the system log.
 function _G.EventForge.DebugListEvents()
     System.LogAlways("[EventForge] ---- Registered Events ----")
@@ -210,14 +217,19 @@ function _G.EventForge.DebugListEventsByMod(modName)
     end
 end
 
-------------------------------------------------
--- Console Commands
-------------------------------------------------
----
+-- #endregion
+
+--------------------------------------------------
+--- Console Commands
+--------------------------------------------------
+-- #region Console Commands
+
 --- Console Commands for accessing EventForge functionality
 System.AddCCommand("EventForge.Events", "EventForge.DebugListEvents()", "List all registered events")
 System.AddCCommand("EventForge.Listeners", "EventForge.DebugListListeners(%s)", "List all registered listeners for an event")
 System.AddCCommand("EventForge.EventsByMod", "EventForge.DebugListEventsByMod(%s)", "List all events registered by a mod")
+
+-- #endregion
 
 ------------------------------------------------
 _G.EventForge.initialized = true
